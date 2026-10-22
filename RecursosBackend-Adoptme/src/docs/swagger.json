@@ -1,0 +1,119 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "AdoptMe API",
+    "description": "Optional multiline or single-line description in [CommonMark](http://commonmark.org/help/) or HTML.",
+    "version": "0.1.9"
+  },
+  "paths": {
+    "/api/users": {
+      "get": {
+        "summary": "Returns a list of users.",
+        "description": "Returns a list of users.",
+        "responses": {
+          "200": {
+            "description": "A JSON array of users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "_id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "role": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "example": [
+                    {
+                      "_id": "1",
+                      "name": "Ulises Baroni",
+                      "email": "ulisesb@adoptme.com",
+                      "role": "user"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/:id": {
+      "get": {
+        "summary": "Returns a user.",
+        "description": "Returns a user found by ID.",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "description": "user ID",
+            "schema": { "type": "string" },
+            "example": "1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An object that contains a user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "_id": "1",
+                  "name": "Ulises Baroni",
+                  "email": "ulisesb@adoptme.com",
+                  "role": "user"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "User not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
