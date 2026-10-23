@@ -1,9 +1,11 @@
 import { Router } from 'express';
-import petsController from '../controllers/pets.controller.js';
+import { createPetsController } from '../controllers/pets.controller.js';
 import uploader from '../utils/uploader.js';
 import CustomError from '../utils/CustomError.js';
 
+const createPetsRouter = (service) => {
 const router = Router();
+const petsController = createPetsController(service);
 
 router.get('/',petsController.getAllPets);
 router.post('/',petsController.createPet);
@@ -18,4 +20,7 @@ router.get('/test-error',(req,res,next)=>{
     next(error)
 })
 
-export default router;
+return router;
+};
+
+export { createPetsRouter };

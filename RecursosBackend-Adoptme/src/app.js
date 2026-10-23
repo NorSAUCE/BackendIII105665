@@ -1,41 +1,34 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 import SwaggerUI from 'swagger-ui-express';
 import swaggerJSON from './docs/swagger.json' with { type:'json' };
-import {logger, loggerTest} from './utils/logger.js';
+import {loggerTest} from './utils/logger.js';
 
-import usersRouter from './routes/users.router.js';
-import petsRouter from './routes/pets.router.js';
+import { createUsersRouter } from './routes/users.router.js';
+import { createPetsRouter } from './routes/pets.router.js';
+import { usersService, petsService } from './services/index.js';
 import adoptionsRouter from './routes/adoption.router.js';
 import sessionsRouter from './routes/sessions.router.js';
 import errorHandler from './middlewares/errorHandler.js';
 
 
-const app = express();
-const PORT = process.env.PORT || 8080;
-// const pathToSwaggerUi = SwaggerUI.SwaggerUIBundle({
-//     spec: swaggerJSON
-// })
+const createApp = ({ users = usersService, pets = petsService } = {}) => {
+    const app = express();
+    app.use(express.json());
+    app.use(cookieParser());
 
-app.use(express.json());
-app.use(cookieParser());
+    app.use('/api/users', createUsersRouter(users));
+    app.use('/api/pets', createPetsRouter(pets));
+    app.use('/api/adoptions',adoptionsRouter);
+    app.use('/api/sessions',sessionsRouter);
 
-app.use('/api/users',usersRouter);
-app.use('/api/pets',petsRouter);
-app.use('/api/adoptions',adoptionsRouter);
-app.use('/api/sessions',sessionsRouter);
+    app.use('/loggerTest', loggerTest);
+    app.use('/api/docs', SwaggerUI.serve);
+    app.get('/api/docs', SwaggerUI.setup(swaggerJSON));
+    app.use(errorHandler);
 
-app.use('/loggerTest', loggerTest);
+    return app;
+};
 
-// app.use('/api/docs/v2', express.static(pathToSwaggerUi))
-app.use('/api/docs', SwaggerUI.serve);
-app.get('/api/docs', SwaggerUI.setup(swaggerJSON));
-
-app.use(errorHandler)
-
-app.listen(PORT,()=>{
-    console.log(`Servidor escuchando en puerto: ${PORT}`)
-    logger.info(`Servidor escuchando en puerto: ${PORT}`)
-    //DEBUG-INFO-WARN-ERROR
-})
+export { createApp };
+export default createApp();

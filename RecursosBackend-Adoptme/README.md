@@ -24,17 +24,17 @@ CMD ["npm", "run", "start"]
 - `RUN npm install`: instala las dependencias declaradas por el proyecto dentro de la imagen.
 - `COPY ./src ./src`: copia el codigo fuente dentro de `/app/src`.
 - `EXPOSE 8080`: deja documentado que la aplicacion atiende en el puerto `8080` del contenedor. Esta instruccion por si sola no publica el puerto en la computadora; esa comunicacion se configura con Kubernetes en este ejemplo.
-- `CMD ["npm", "run", "start"]`: indica el comando que se ejecuta cuando arranca el contenedor. En `package.json`, el script `start` ejecuta `node src/app.js`.
+- `CMD ["npm", "run", "start"]`: indica el comando que se ejecuta cuando arranca el contenedor. En `package.json`, el script `start` ejecuta `node src/server.js`.
 
 ### Por que se corrigio la copia de `src`
 
-El script `start` busca el archivo `src/app.js`. Antes, el Dockerfile copiaba el contenido de `src` directamente a `/app`. Eso dejaba el archivo como `/app/app.js`, pero Node intentaba abrir `/app/src/app.js`. El resultado era un error de archivo no encontrado y el contenedor terminaba.
+El script `start` busca el archivo `src/server.js`. Antes, el Dockerfile copiaba el contenido de `src` directamente a `/app`. Eso dejaba el archivo como `/app/server.js`, pero Node intentaba abrir `/app/src/server.js`. El resultado era un error de archivo no encontrado y el contenedor terminaba.
 
 Al usar `COPY ./src ./src`, se conserva la carpeta y la ruta queda como `/app/src/app.js`, que coincide con lo que ejecuta `npm start`.
 
 ### Por que se cambio el puerto a 8080
 
-En `src/app.js` la aplicacion define `const PORT = process.env.PORT || 8080`. Si no se configura la variable `PORT`, Express escucha en el puerto `8080`. Por eso el Dockerfile y Kubernetes deben describir ese mismo puerto. Si cada parte usa un numero distinto, el contenedor puede estar funcionando y aun asi el trafico puede enviarse a un puerto donde no hay ningun servidor.
+En `src/server.js` la aplicacion define `const PORT = process.env.PORT || 8080`. Si no se configura la variable `PORT`, Express escucha en el puerto `8080`. Por eso el Dockerfile y Kubernetes deben describir ese mismo puerto. Si cada parte usa un numero distinto, el contenedor puede estar funcionando y aun asi el trafico puede enviarse a un puerto donde no hay ningun servidor.
 
 ## 2. El manifiesto de Kubernetes
 
@@ -76,7 +76,7 @@ Habia varios valores que no estaban conectados entre si:
 1. **El selector del Service no encontraba los Pods.** El Deployment creaba Pods con `app: backend-adoptme`, pero el Service buscaba `app: RecursosBackend-Adoptme`. Como no habia coincidencia, el Service se quedaba sin destinos y no podia enviar las solicitudes a la aplicacion.
 2. **El puerto del contenedor no era el de la aplicacion.** El manifiesto indicaba `3000`, mientras que `src/app.js` escucha por defecto en `8080`. El Service podia intentar reenviar trafico a un puerto sin servidor.
 3. **El NodePort `3001` no era valido en la configuracion predeterminada.** Kubernetes normalmente reserva para NodePort el rango `30000` a `32767`. Al pedir `3001`, la creacion del Service puede ser rechazada. En el manifiesto corregido se usa `30080`, que esta dentro del rango habitual.
-4. **La ruta del archivo de inicio no coincidia con la copia del Dockerfile.** El comando `npm start` busca `src/app.js`, pero la copia anterior dejaba el archivo en otra ubicacion. El contenedor podia finalizar antes de que Kubernetes tuviera una aplicacion disponible.
+4. **La ruta del archivo de inicio no coincidia con la copia del Dockerfile.** El comando `npm start` busca `src/server.js`, pero la copia anterior dejaba el archivo en otra ubicacion. El contenedor podia finalizar antes de que Kubernetes tuviera una aplicacion disponible.
 
 Tambien es importante distinguir dos situaciones: si el YAML tiene un error de configuracion, Kubernetes puede rechazar el recurso; si acepta el Deployment pero el proceso del contenedor falla, los Pods pueden reiniciarse continuamente. Y aunque los Pods esten ejecutandose, un selector incorrecto puede dejar al Service sin endpoints.
 

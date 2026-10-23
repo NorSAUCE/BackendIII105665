@@ -1,3 +1,5 @@
 node_modules
 test
 logs
+!src/test/
+!src/test/routes.integration.test.js
